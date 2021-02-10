@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: spring-boot-eureka-registry
+  messages:
+    encoding: UTF-8
+  profiles:
+    active: 1
+
+server:
+  port: 8761
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    basedir: ../tomcat/${server.port}
+
+cluster:
+  prefer-ip-address: true
+  node1:
+    host: 192.168.47.128
+    port: 8761
+    replicas: http://${cluster.node2.host}:${cluster.node2.port}${server.servlet.context-path}eureka,http://${cluster.node3.host}:${cluster.node3.port}${server.servlet.context-path}eureka
+  node2:
+    host: 192.168.47.129
+    port: 8761
+    replicas: http://${cluster.node1.host}:${cluster.node1.port}${server.servlet.context-path}eureka,http://${cluster.node3.host}:${cluster.node3.port}${server.servlet.context-path}eureka
+  node3:
+    host: 192.168.47.130
+    port: 8761
+    replicas: http://${cluster.node1.host}:${cluster.node1.port}${server.servlet.context-path}eureka,http://${cluster.node2.host}:${cluster.node2.port}${server.servlet.context-path}eureka
+
+---
+spring:
+  profiles:
+    active: 1
+eureka:
+  instance:
+    hostname: ${cluster.node1.host}
+    prefer-ip-address: ${cluster.prefer-ip-address}
+    lease-renewal-interval-in-seconds: 30
+  server:
+    enable-self-preservation: true
+    peer-node-connect-timeout-ms: 200
+    peer-node-read-timeout-ms: 200
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${cluster.node1.replicas}
+---
+spring:
+  profiles:
+    active: 2
+eureka:
+  instance:
+    hostname: ${cluster.node2.host}
+    prefer-ip-address: ${cluster.prefer-ip-address}
+    lease-renewal-interval-in-seconds: 30
+  server:
+    enable-self-preservation: true
+    peer-node-connect-timeout-ms: 200
+    peer-node-read-timeout-ms: 200
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${cluster.node2.replicas}
+---
+spring:
+  profiles:
+    active: 3
+eureka:
+  instance:
+    hostname: ${cluster.node3.host}
+    prefer-ip-address: ${cluster.prefer-ip-address}
+    lease-renewal-interval-in-seconds: 30
+  server:
+    enable-self-preservation: true
+    peer-node-connect-timeout-ms: 200
+    peer-node-read-timeout-ms: 200
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${cluster.node3.replicas}

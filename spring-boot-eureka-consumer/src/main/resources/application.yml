@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: spring-boot-eureka-consumer
+  messages:
+    encoding: UTF-8
+
+server:
+  port: 9091
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    basedir: ../tomcat/${server.port}
+
+eureka:
+  registry:
+    context-path: /
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+  client:
+    initial-instance-info-replication-interval-seconds: 40
+    instance-info-replication-interval-seconds: 30
+    registry-fetch-interval-seconds: 30
+    service-url:
+      defaultZone: ${cluster.replicas}
+
+cluster:
+  node1: 127.0.0.1:8761
+  node2: 127.0.0.1:8762
+  node3: 127.0.0.1:8763
+  replicas: http://${cluster.node1}${eureka.registry.context-path}eureka,http://${cluster.node2}${eureka.registry.context-path}eureka,http://${cluster.node3}${eureka.registry.context-path}eureka
+
+ribbon:
+  eager-load:
+    enabled: true
+    clients: spring-boot-eureka-producer
+  eureka:
+    enabled: true
+
+spring-boot-eureka-producer:
+  ribbon:
+    listOfServers: 127.0.0.1:9081,127.0.0.1:9082
